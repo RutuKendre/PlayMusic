@@ -28,11 +28,9 @@ public class DetailFragment extends Fragment {
 
         return view;
     }
-    public void setText(String text)
-    {
-        TextView textView=(TextView)getView().findViewById(R.id.tvdetail);
-        textView.setText(text);
-    }
+    //public void setText(String text)
+    //{
+    //}
     @Override
     public void onActivityCreated(Bundle savedInstanceState)
     {
@@ -41,7 +39,11 @@ public class DetailFragment extends Fragment {
 
         if(bundle!=null)
         {
-            setText(bundle.getString("songname"));
+            TextView textView=(TextView)getView().findViewById(R.id.tvdetail);
+            textView.setText(bundle.getString("songname"));
+            TextView textView1=(TextView)getView().findViewById(R.id.singerdetail);
+            textView1.setText(bundle.getString("singername"));
+            //setText(bundle.getString("songname"));
         }
     }
 

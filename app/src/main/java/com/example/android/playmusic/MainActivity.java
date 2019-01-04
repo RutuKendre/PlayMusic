@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,21 +22,28 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
 import android.widget.Toast;
-
+import android.widget.MediaController.MediaPlayerControl;
 import com.example.android.playmusic.SongAdapter;
 
 
-public class MainActivity extends AppCompatActivity {
-    //private MediaPlayer mMediaPlayer;
+public class MainActivity extends AppCompatActivity implements MediaPlayerControl{
 
+    private MediaPlayer mMediaPlayer;
+   public MusicController controller;
+    private boolean paused=false, playbackPaused=false;
     private MusicService musicService;
     private Intent playIntent;
     private boolean musicBound=false;
@@ -46,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setController();
        if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED)
        {
            if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE))
@@ -60,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
        else{
            doStuff();
        }
+
+
     }
 
     private ServiceConnection musicConnection = new ServiceConnection(){
@@ -98,31 +111,44 @@ public class MainActivity extends AppCompatActivity {
         getSongs();
         adapter = new SongAdapter(this,SongList);
         listview.setAdapter(adapter);
+
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Log.e("hh","f");
                 Song mysong= SongList.get(position);
                 String songname= mysong.getSongName();
-                Log.e("0","0");
+                String singername=mysong.getSingerName();
                 DetailFragment detailFragment= new DetailFragment();
                 Bundle bundle = new Bundle();
                 bundle.putString("songname",songname);
-                Log.e("1","1");
+                bundle.putString("singername",singername);
                 detailFragment.setArguments(bundle);
                 FragmentManager manager= getSupportFragmentManager();
-                Log.e("2","2");
-                manager.beginTransaction().replace(R.id.detailfragment,detailFragment).commit();
-                Log.e("3","3");
+               // manager.beginTransaction().replace(R.id.detailfragment,detailFragment).commit();
+
+
+
+
                 songPicked(view,position);
+
+
+
+               // FragmentManager manager = getFragmentManager();
+                FragmentTransaction transaction = manager.beginTransaction();
+                transaction.add(R.id.detailfragment,detailFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+
+
+              //  Intent intent = new Intent(MainActivity.this,FragmentActivity.class);
+                //startActivity(intent);
 
             }
         });
 
-
-
     }
+
 
     @Override
     protected void onDestroy() {
@@ -186,12 +212,139 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void songPicked(View view,int position)
-    {
+   // public void songPicked(View view,int position)
+    //{
+      ////  musicService.setSong(Integer.parseInt(view.getTag().toString()));
+        //musicService.playMethod();
+
+    //}
+    public void songPicked(View view,int position){
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playMethod();
-
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
+        controller.show(0);
     }
+    public void setController(){
+        //set the controller up
+        controller = new MusicController(this);
+        controller.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playNext();
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playPrev();
+            }
+        });
+        controller.setMediaPlayer(this);
+        controller.setAnchorView(findViewById(R.id.song_list));
+        controller.setEnabled(true);
+    }
+    private void playNext(){
+        musicService.playNext();
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
+        controller.show(0);
+    }
+
+    //play previous
+    private void playPrev(){
+        musicService.playPrev();
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
+        controller.show(0);
+    }
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+    @Override
+    public int getCurrentPosition() {
+        if(musicService!=null&&musicBound &&musicService.isPng())
+        { return musicService.getPosn();}
+       else
+        {return 0;}
+    }
+    @Override
+    public int getDuration() {
+        if(musicService!=null && musicBound && musicService.isPng())
+        return musicService.getDur();
+  else return 0;
+    }
+    @Override
+    public boolean isPlaying() {
+        if(musicService!=null &&musicBound)
+        return musicService.isPng();
+        return false;
+    }
+   // @Override
+    //public void pause() {
+      //  musicService.pausePlayer();
+    //}
+    @Override
+    public void pause() {
+        playbackPaused=true;
+        musicService.pausePlayer();
+    }
+
+    @Override
+    public void seekTo(int pos) {
+        musicService.seek(pos);
+    }
+
+    @Override
+    public void start() {
+        musicService.go();
+    }
+
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        paused=true;
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(paused){
+            setController();
+            paused=false;
+        }
+    }
+    @Override
+    protected void onStop() {
+        controller.hide();
+        super.onStop();
+    }
+
 
 
 }

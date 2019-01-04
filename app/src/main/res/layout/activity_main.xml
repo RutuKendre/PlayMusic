@@ -3,29 +3,28 @@
 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity"
+
     android:id="@+id/rootView">
 
-<FrameLayout
+    <FrameLayout
 
-    android:id="@+id/detailfragment"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-     class="com.example.android.playmusic.DetailFragment"
+        android:id="@+id/detailfragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        class="com.example.android.playmusic.DetailFragment">
 
-    >
+    </FrameLayout>
 
-
-</FrameLayout>
-   <ListView
-       android:id="@+id/song_list"
-       android:layout_width="fill_parent"
-       android:layout_height="wrap_content"
-       >
-
-   </ListView>
+    <ListView
+        android:choiceMode="singleChoice"
+        android:id="@+id/song_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+    </ListView>
 
 </LinearLayout>
