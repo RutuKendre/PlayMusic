@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
@@ -29,6 +30,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.os.Bundle;
@@ -42,13 +44,13 @@ import com.example.android.playmusic.SongAdapter;
 public class MainActivity extends AppCompatActivity implements MediaPlayerControl{
 
     private MediaPlayer mMediaPlayer;
-   public MusicController controller;
+    public MusicController controller;
     private boolean paused=false, playbackPaused=false;
     private MusicService musicService;
     private Intent playIntent;
     private boolean musicBound=false;
-   private static final int MY_PERMISSION_REQUEST=1;
-     ArrayList<Song> SongList;
+    private static final int MY_PERMISSION_REQUEST=1;
+    private ArrayList<Song> SongList;
     ListView listview;
     SongAdapter adapter;
 
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setController();
+
        if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED)
        {
            if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE))
@@ -127,23 +130,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
                 FragmentManager manager= getSupportFragmentManager();
                // manager.beginTransaction().replace(R.id.detailfragment,detailFragment).commit();
 
-
-
-
-                songPicked(view,position);
-
-
-
-               // FragmentManager manager = getFragmentManager();
                 FragmentTransaction transaction = manager.beginTransaction();
                 transaction.add(R.id.detailfragment,detailFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
-
-
-              //  Intent intent = new Intent(MainActivity.this,FragmentActivity.class);
-                //startActivity(intent);
-
+                FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
+                  framelayout.setVisibility(View.VISIBLE);
+                songPicked(view);
             }
         });
 
@@ -155,6 +148,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         stopService(playIntent);
         musicService=null;
         super.onDestroy();
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.detailfragment);
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.remove(fragment);
+        ft.commit();
     }
     public void getSongs() {
         ContentResolver musicResolver = getContentResolver();
@@ -171,16 +169,21 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
                     (android.provider.MediaStore.Audio.Media._ID);
             int artistColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.ARTIST);
+            int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+            String thisAlbum = musicCursor.getString(albumColumn);
             //int albumColumn= musicCursor.getColumnIndex
-                  //  (MediaStore.Audio.Albums.ALBUM_ART);
+              //     (MediaStore.Audio.Albums.ALBUM_ART);
             //add songs to list
             do {
 
                 int thisId = musicCursor.getInt(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
+                // String thisAlbum=musicCursor.getString(albumColumn);
 
-               SongList.add(new Song(thisTitle,thisArtist,thisId));
+
+                   SongList.add(new Song(thisTitle,thisArtist,thisId));
+
             }
             while (musicCursor.moveToNext());
         }
@@ -212,13 +215,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         }
     }
 
-   // public void songPicked(View view,int position)
-    //{
-      ////  musicService.setSong(Integer.parseInt(view.getTag().toString()));
-        //musicService.playMethod();
 
-    //}
-    public void songPicked(View view,int position){
+    public void songPicked(View view){
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playMethod();
         if(playbackPaused){
@@ -242,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
             }
         });
         controller.setMediaPlayer(this);
-        controller.setAnchorView(findViewById(R.id.song_list));
+        controller.setAnchorView(findViewById(R.id.detailfragment));
         controller.setEnabled(true);
     }
     private void playNext(){
@@ -263,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         }
         controller.show(0);
     }
+
     @Override
     public boolean canPause() {
         return true;
@@ -285,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     }
     @Override
     public int getDuration() {
-        if(musicService!=null && musicBound && musicService.isPng())
+        if(musicService!=null && musicBound&& musicService.isPng())
         return musicService.getDur();
   else return 0;
     }
@@ -295,10 +294,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         return musicService.isPng();
         return false;
     }
-   // @Override
-    //public void pause() {
-      //  musicService.pausePlayer();
-    //}
+
     @Override
     public void pause() {
         playbackPaused=true;
@@ -344,7 +340,5 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         controller.hide();
         super.onStop();
     }
-
-
 
 }

@@ -29,6 +29,12 @@ import java.util.Set;
 
 public class MusicService extends Service
 {
+    //media player
+    private MediaPlayer mediaPlayer;
+    //song list
+    private ArrayList<Song> songs;
+    //current position
+    private int songPosn;
 
     private String songTitle;
     public static final int notificationId=1;
@@ -82,14 +88,6 @@ public class MusicService extends Service
         }
     };
 
-//Set the intent that will fire when the user taps the notification
-
-    //media player
-    private MediaPlayer mediaPlayer;
-    //song list
-    private ArrayList<Song> songs;
-    //current position
-    private int songPosn;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -97,7 +95,7 @@ public class MusicService extends Service
     }
 
     @Override
-    public boolean onUnbind(Intent intent){
+   public boolean onUnbind(Intent intent){
         mediaPlayer.stop();
         mediaPlayer.release();
         return false;
@@ -111,7 +109,12 @@ public class MusicService extends Service
         songPosn=0;
 //create player
         mediaPlayer = new MediaPlayer();
-        startMusicPlayer();
+
+        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnPreparedListener(mPreparedListener);
+        mediaPlayer.setOnCompletionListener(mCompletionListener);
+        mediaPlayer.setOnErrorListener(mErrorListener);
         createNotificationChannel();
 
     }
@@ -128,20 +131,10 @@ public class MusicService extends Service
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-
-
         }
-
     }
 
-    public void startMusicPlayer()
-    {
-        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnPreparedListener(mPreparedListener);
-        mediaPlayer.setOnCompletionListener(mCompletionListener);
-        mediaPlayer.setOnErrorListener(mErrorListener);
-    }
+
     public void setList(ArrayList<Song> theSongs){
         songs=theSongs;
     }
@@ -209,10 +202,6 @@ public class MusicService extends Service
         playMethod();
     }
 
-    @Override
-    public void onDestroy() {
-      stopForeground(true);
-   }
 
 }
 

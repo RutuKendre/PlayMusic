@@ -19,7 +19,6 @@ public class DetailFragment extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -28,9 +27,7 @@ public class DetailFragment extends Fragment {
 
         return view;
     }
-    //public void setText(String text)
-    //{
-    //}
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState)
     {
@@ -39,12 +36,11 @@ public class DetailFragment extends Fragment {
 
         if(bundle!=null)
         {
-            TextView textView=(TextView)getView().findViewById(R.id.tvdetail);
+            TextView textView=(TextView)getView().findViewById(R.id.songdetail);
             textView.setText(bundle.getString("songname"));
             TextView textView1=(TextView)getView().findViewById(R.id.singerdetail);
             textView1.setText(bundle.getString("singername"));
-            //setText(bundle.getString("songname"));
+
         }
     }
-
 }

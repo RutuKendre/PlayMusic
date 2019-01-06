@@ -14,5 +14,4 @@ public class MusicController extends MediaController {
     public void show(int timeout) {
         super.show(0);
     }
-
 }
