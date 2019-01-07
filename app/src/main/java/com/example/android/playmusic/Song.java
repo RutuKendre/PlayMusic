@@ -4,14 +4,14 @@ public class Song {
     private String mSongName;
     private String mSingerName;
     private int mSongId;
-    private String mImageId;
+
 
     public Song(String songName,String singerName,int songId)
     {
         mSongName = songName;
         mSingerName = singerName;
         mSongId = songId;
-       // mImageId=imageId;
+
     }
 
 
@@ -27,9 +27,6 @@ public class Song {
     {
         return mSongId;
     }
-    public String getImageId()
-    {
-       return mImageId;
-    }
+
 
 }

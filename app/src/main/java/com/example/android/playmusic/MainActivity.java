@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -35,21 +36,22 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.MediaController.MediaPlayerControl;
 import com.example.android.playmusic.SongAdapter;
 
 
-public class MainActivity extends AppCompatActivity implements MediaPlayerControl{
+public class MainActivity extends AppCompatActivity implements MediaPlayerControl {
 
     private MediaPlayer mMediaPlayer;
     public MusicController controller;
-    private boolean paused=false, playbackPaused=false;
+    private boolean paused = false, playbackPaused = false;
     private MusicService musicService;
     private Intent playIntent;
-    private boolean musicBound=false;
-    private static final int MY_PERMISSION_REQUEST=1;
+    private boolean musicBound = false;
+    private static final int MY_PERMISSION_REQUEST = 1;
     private ArrayList<Song> SongList;
     ListView listview;
     SongAdapter adapter;
@@ -60,29 +62,22 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         setContentView(R.layout.activity_main);
         setController();
 
-       if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED)
-       {
-           if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE))
-           {
-               ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSION_REQUEST);
-           }
-           else
-               {
-                   ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSION_REQUEST);
-           }
-       }
-       else{
-           doStuff();
-       }
-
-
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
+            }
+        } else {
+            doStuff();
+        }
     }
 
-    private ServiceConnection musicConnection = new ServiceConnection(){
+    private ServiceConnection musicConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
             //get service
             musicService = binder.getService();
             //pass list
@@ -99,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     @Override
     protected void onStart() {
         super.onStart();
-        if(playIntent==null){
+        if (playIntent == null) {
             playIntent = new Intent(this, MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             startService(playIntent);
@@ -107,53 +102,54 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     }
 
 
-    public void doStuff()
-    {
-        listview = (ListView)findViewById(R.id.song_list);
+    public void doStuff() {
+        listview = (ListView) findViewById(R.id.song_list);
         SongList = new ArrayList<Song>();
         getSongs();
-        adapter = new SongAdapter(this,SongList);
+        adapter = new SongAdapter(this, SongList);
         listview.setAdapter(adapter);
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Song mysong= SongList.get(position);
-                String songname= mysong.getSongName();
-                String singername=mysong.getSingerName();
-                DetailFragment detailFragment= new DetailFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString("songname",songname);
-                bundle.putString("singername",singername);
-                detailFragment.setArguments(bundle);
-                FragmentManager manager= getSupportFragmentManager();
-               // manager.beginTransaction().replace(R.id.detailfragment,detailFragment).commit();
 
-                FragmentTransaction transaction = manager.beginTransaction();
-                transaction.add(R.id.detailfragment,detailFragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
-                FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
-                  framelayout.setVisibility(View.VISIBLE);
                 songPicked(view);
+                  replaceFragment(position);
+
+
             }
         });
 
     }
-
+public void replaceFragment(int posn)
+{
+    Song mysong = SongList.get(posn);
+    String songname = mysong.getSongName();
+    String singername = mysong.getSingerName();
+    DetailFragment detailFragment = new DetailFragment();
+    Bundle bundle = new Bundle();
+    bundle.putString("songname", songname);
+    bundle.putString("singername", singername);
+    detailFragment.setArguments(bundle);
+    FragmentManager manager = getSupportFragmentManager();
+    FragmentTransaction transaction = manager.beginTransaction();
+    transaction.replace(R.id.detailfragment, detailFragment);
+    transaction.addToBackStack(null);
+    transaction.commit();
+    FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
+    framelayout.setVisibility(View.VISIBLE);
+}
 
     @Override
     protected void onDestroy() {
         stopService(playIntent);
         musicService=null;
         super.onDestroy();
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.detailfragment);
-        FragmentTransaction ft = fm.beginTransaction();
-        ft.remove(fragment);
-        ft.commit();
+
+
     }
+
     public void getSongs() {
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -169,20 +165,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
                     (android.provider.MediaStore.Audio.Media._ID);
             int artistColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.ARTIST);
-            int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
-            String thisAlbum = musicCursor.getString(albumColumn);
-            //int albumColumn= musicCursor.getColumnIndex
-              //     (MediaStore.Audio.Albums.ALBUM_ART);
-            //add songs to list
+
+
             do {
 
                 int thisId = musicCursor.getInt(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                // String thisAlbum=musicCursor.getString(albumColumn);
 
 
-                   SongList.add(new Song(thisTitle,thisArtist,thisId));
+                SongList.add(new Song(thisTitle, thisArtist, thisId));
 
             }
             while (musicCursor.moveToNext());
@@ -191,22 +183,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     }
 
 
-    public void onRequestPermissionResult(int requestCode,String[] permission,int[] grantResults)
-    {
-        switch(requestCode)
-        {
-            case MY_PERMISSION_REQUEST:
-            {
-                if(grantResults.length>0&& grantResults[0]==PackageManager.PERMISSION_GRANTED)
-                {
-                    if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED)
-                    {
-                        Toast.makeText(this,"PERMISSION GRANTED",Toast.LENGTH_SHORT).show();
+    public void onRequestPermissionResult(int requestCode, String[] permission, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(this, "PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
                         doStuff();
-                    }
-                    else
-                    {
-                        Toast.makeText(this," NO PERMISSION GRANTED",Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, " NO PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                     return;
@@ -216,22 +201,24 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     }
 
 
-    public void songPicked(View view){
+    public void songPicked(View view) {
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playMethod();
-        if(playbackPaused){
+        if (playbackPaused) {
             setController();
-            playbackPaused=false;
+            playbackPaused = false;
         }
         controller.show(0);
     }
-    public void setController(){
+
+    public void setController() {
         //set the controller up
         controller = new MusicController(this);
         controller.setPrevNextListeners(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playNext();
+
             }
         }, new View.OnClickListener() {
             @Override
@@ -243,21 +230,25 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         controller.setAnchorView(findViewById(R.id.detailfragment));
         controller.setEnabled(true);
     }
-    private void playNext(){
-        musicService.playNext();
-        if(playbackPaused){
+
+    private void playNext() {
+        int position= musicService.playNext();
+             replaceFragment(position);
+        if (playbackPaused) {
             setController();
-            playbackPaused=false;
+            playbackPaused = false;
         }
         controller.show(0);
+        //return position;
     }
 
     //play previous
-    private void playPrev(){
-        musicService.playPrev();
-        if(playbackPaused){
+    private void playPrev() {
+        int position =musicService.playPrev();
+        replaceFragment(position);
+        if (playbackPaused) {
             setController();
-            playbackPaused=false;
+            playbackPaused = false;
         }
         controller.show(0);
     }
@@ -266,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     public boolean canPause() {
         return true;
     }
+
     @Override
     public boolean canSeekBackward() {
         return true;
@@ -275,30 +267,35 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     public boolean canSeekForward() {
         return true;
     }
+
     @Override
     public int getCurrentPosition() {
-        if(musicService!=null&&musicBound &&musicService.isPng())
-        { return musicService.getPosn();}
-       else
-        {return 0;}
+        if (musicService != null && musicBound && musicService.isPng()) {
+            return musicService.getPosn();
+        } else {
+            return 0;
+        }
     }
+
     @Override
     public int getDuration() {
-        if(musicService!=null && musicBound&& musicService.isPng())
-        return musicService.getDur();
-  else return 0;
+        if (musicService != null && musicBound && musicService.isPng())
+            return musicService.getDur();
+        else return 0;
     }
+
     @Override
     public boolean isPlaying() {
-        if(musicService!=null &&musicBound)
-        return musicService.isPng();
+        if (musicService != null && musicBound)
+            return musicService.isPng();
         return false;
     }
 
     @Override
     public void pause() {
-        playbackPaused=true;
+        playbackPaused = true;
         musicService.pausePlayer();
+
     }
 
     @Override
@@ -309,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     @Override
     public void start() {
         musicService.go();
+
     }
 
 
@@ -323,22 +321,25 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     }
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
-        paused=true;
+        paused = true;
     }
+
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-        if(paused){
+        if (paused) {
             setController();
-            paused=false;
+            paused = false;
         }
     }
+
     @Override
     protected void onStop() {
         controller.hide();
         super.onStop();
     }
+
 
 }

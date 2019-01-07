@@ -23,12 +23,15 @@ import android.util.Log;
 import java.util.Random;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.view.View;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
+import com.example.android.playmusic.MainActivity;
 
-public class MusicService extends Service
-{
+public class MusicService extends Service {
+
     //media player
     private MediaPlayer mediaPlayer;
     //song list
@@ -37,16 +40,16 @@ public class MusicService extends Service
     private int songPosn;
 
     private String songTitle;
-    public static final int notificationId=1;
-    public static final String CHANNEL_ID= "music" ;
+    public static final int notificationId = 1;
+    public static final String CHANNEL_ID = "music";
     private final IBinder musicBind = new MusicBinder();
     private MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
-        public void onPrepared (MediaPlayer mediaPlayer) {
-           mediaPlayer.start();
+        public void onPrepared(MediaPlayer mediaPlayer) {
+            mediaPlayer.start();
 
             Intent intent = new Intent(MusicService.this, MainActivity.class);
-           // intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            // intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.setAction(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -67,19 +70,17 @@ public class MusicService extends Service
 
         }
     };
-    private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener()
-    {
+    private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            if(mediaPlayer.getCurrentPosition()>0){
+            if (mediaPlayer.getCurrentPosition() > 0) {
                 mp.reset();
-                playNext();
+                //playNext();
             }
         }
     };
 
-    private MediaPlayer.OnErrorListener mErrorListener = new MediaPlayer.OnErrorListener()
-    {
+    private MediaPlayer.OnErrorListener mErrorListener = new MediaPlayer.OnErrorListener() {
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
             mp.reset();
@@ -95,7 +96,7 @@ public class MusicService extends Service
     }
 
     @Override
-   public boolean onUnbind(Intent intent){
+    public boolean onUnbind(Intent intent) {
         mediaPlayer.stop();
         mediaPlayer.release();
         return false;
@@ -106,7 +107,7 @@ public class MusicService extends Service
         super.onCreate();
 
 //initialize position
-        songPosn=0;
+        songPosn = 0;
 //create player
         mediaPlayer = new MediaPlayer();
 
@@ -118,6 +119,7 @@ public class MusicService extends Service
         createNotificationChannel();
 
     }
+
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -135,8 +137,8 @@ public class MusicService extends Service
     }
 
 
-    public void setList(ArrayList<Song> theSongs){
-        songs=theSongs;
+    public void setList(ArrayList<Song> theSongs) {
+        songs = theSongs;
     }
 
     public class MusicBinder extends Binder {
@@ -145,63 +147,74 @@ public class MusicService extends Service
         }
     }
 
-    public void setSong(int songIndex){
-        songPosn=songIndex;
+    public void setSong(int songIndex) {
+        songPosn = songIndex;
     }
-    public void playMethod()
-    {
+
+    public void playMethod() {
         mediaPlayer.reset();
         Song playSong = songs.get(songPosn);
 //get id
-        songTitle=playSong.getSongName();
+        songTitle = playSong.getSongName();
         long currSong = playSong.getSongId();
 //set uri
         Uri trackUri = ContentUris.withAppendedId(
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 currSong);
-        try{
+        try {
             mediaPlayer.setDataSource(getApplicationContext(), trackUri);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             Log.e("MUSIC SERVICE", "Error setting data source", e);
         }
         mediaPlayer.prepareAsync();
     }
-    public int getPosn(){
+
+    public int getPosn() {
         return mediaPlayer.getCurrentPosition();
     }
 
-    public int getDur(){
+    public int getDur() {
         return mediaPlayer.getDuration();
     }
 
-    public boolean isPng(){
+    public boolean isPng() {
         return mediaPlayer.isPlaying();
     }
 
-    public void pausePlayer(){
+    public void pausePlayer() {
         mediaPlayer.pause();
     }
 
-    public void seek(int posn){
+    public void seek(int posn) {
         mediaPlayer.seekTo(posn);
     }
 
-    public void go(){
+    public void go() {
         mediaPlayer.start();
     }
-    public void playPrev(){
+
+    public int playPrev() {
         songPosn--;
-        if(songPosn<0) songPosn=songs.size()-1;
-            songPosn=songs.size()-1;
+        if (songPosn < 0) {
+        songPosn = songs.size() - 1;}
         playMethod();
+        return songPosn;
     }
-    public void playNext(){
+
+    public int playNext() {
         songPosn++;
-        if(songPosn>=songs.size()) songPosn=0;
+
+        if (songPosn >= songs.size()) songPosn = 0;
         playMethod();
+        return songPosn;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
+        stopForeground(true);
+
+    }
 }
 

@@ -14,12 +14,11 @@
 
         android:id="@+id/detailfragment"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="175dp"
         android:visibility="gone"
         class="com.example.android.playmusic.DetailFragment">
 
     </FrameLayout>
-
     <ListView
         android:choiceMode="singleChoice"
         android:id="@+id/song_list"
@@ -27,5 +26,6 @@
         android:layout_height="wrap_content"
         >
     </ListView>
+
 
 </LinearLayout>
