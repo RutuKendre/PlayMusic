@@ -19,4 +19,18 @@ public class MusicController extends MediaController {
         super.show(0);
     }
 
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event)
+    {
+        int keyCode = event.getKeyCode();
+        if(keyCode == KeyEvent.KEYCODE_BACK)
+        {
+            Log.d(this.getClass().getName(),"DispACH");
+            super.hide();
+            Context c = getContext();
+            ((Activity) c).finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
 }

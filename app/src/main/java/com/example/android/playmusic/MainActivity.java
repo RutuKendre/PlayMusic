@@ -1,8 +1,12 @@
 package com.example.android.playmusic;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.logging.Logger;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,11 +15,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -29,9 +38,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.os.Bundle;
@@ -101,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         }
     }
 
-
     public void doStuff() {
         listview = (ListView) findViewById(R.id.song_list);
         SongList = new ArrayList<Song>();
@@ -113,10 +123,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-
                 songPicked(view);
                   replaceFragment(position);
-
 
             }
         });
@@ -137,8 +145,10 @@ public void replaceFragment(int posn)
     transaction.replace(R.id.detailfragment, detailFragment);
     transaction.addToBackStack(null);
     transaction.commit();
+
     FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
     framelayout.setVisibility(View.VISIBLE);
+
 }
 
     @Override
@@ -158,7 +168,7 @@ public void replaceFragment(int posn)
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
             //get columns
-
+            MediaMetadataRetriever metaRetriver = new MediaMetadataRetriever();
             int titleColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.TITLE);
             int idColumn = musicCursor.getColumnIndex
@@ -174,7 +184,10 @@ public void replaceFragment(int posn)
                 String thisArtist = musicCursor.getString(artistColumn);
 
 
-                SongList.add(new Song(thisTitle, thisArtist, thisId));
+
+
+                SongList.add(new Song(thisTitle, thisArtist,thisId));
+
 
             }
             while (musicCursor.moveToNext());

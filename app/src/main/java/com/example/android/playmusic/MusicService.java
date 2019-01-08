@@ -106,6 +106,7 @@ public class MusicService extends Service {
     public void onCreate() {
         super.onCreate();
 
+
 //initialize position
         songPosn = 0;
 //create player
@@ -193,18 +194,17 @@ public class MusicService extends Service {
         mediaPlayer.start();
     }
 
-    public int playPrev() {
-        songPosn--;
-        if (songPosn < 0) {
-        songPosn = songs.size() - 1;}
-        playMethod();
-        return songPosn;
-    }
-
     public int playNext() {
         songPosn++;
 
         if (songPosn >= songs.size()) songPosn = 0;
+        playMethod();
+        return songPosn;
+    }
+    public int playPrev() {
+        songPosn--;
+        if (songPosn < 0) {
+            songPosn = songs.size() - 1;}
         playMethod();
         return songPosn;
     }
@@ -216,5 +216,6 @@ public class MusicService extends Service {
         stopForeground(true);
 
     }
+   
 }
 
