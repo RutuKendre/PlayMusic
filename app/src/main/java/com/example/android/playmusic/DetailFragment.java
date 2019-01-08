@@ -10,9 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
-/**
- * A simple {@link Fragment} subclass.
- */
+
 public class DetailFragment extends Fragment {
 
 
@@ -35,14 +33,14 @@ public class DetailFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         Bundle bundle = getArguments();
 
-        if(bundle!=null)
-        {
-            TextView textView=(TextView)getView().findViewById(R.id.songdetail);
-            textView.setText(bundle.getString("songname"));
-            TextView textView1=(TextView)getView().findViewById(R.id.singerdetail);
-            textView1.setText(bundle.getString("singername"));
+    if (bundle != null) {
+        TextView textView = (TextView) getView().findViewById(R.id.songdetail);
+        textView.setText(bundle.getString("songname"));
+        TextView textView1 = (TextView) getView().findViewById(R.id.singerdetail);
+        textView1.setText(bundle.getString("singername"));
 
-        }
+
+}
     }
 
 

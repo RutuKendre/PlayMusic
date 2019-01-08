@@ -15,7 +15,6 @@ public class Song {
         mSingerName = singerName;
         mSongId = songId;
 
-
     }
 
 

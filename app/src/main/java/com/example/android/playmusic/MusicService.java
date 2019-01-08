@@ -32,6 +32,7 @@ import com.example.android.playmusic.MainActivity;
 
 public class MusicService extends Service {
 
+
     //media player
     private MediaPlayer mediaPlayer;
     //song list
@@ -49,14 +50,13 @@ public class MusicService extends Service {
             mediaPlayer.start();
 
             Intent intent = new Intent(MusicService.this, MainActivity.class);
-            // intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
             intent.setAction(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
             PendingIntent pendingIntent = PendingIntent.getActivity(MusicService.this, 0, intent, 0);
 
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(MusicService.this, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.notification_icon)
+                    .setSmallIcon(R.drawable.image)
                     .setContentTitle(" Now Playing")
                     .setContentText(songTitle)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -65,7 +65,7 @@ public class MusicService extends Service {
 
             NotificationManagerCompat notificationManage = NotificationManagerCompat.from(MusicService.this);
 
-// notificationId is a unique int for each notification that you must define
+         // notificationId is a unique int for each notification that you must define
             notificationManage.notify(notificationId, mBuilder.build());
 
         }
@@ -105,6 +105,7 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
 
 
 //initialize position
@@ -194,13 +195,7 @@ public class MusicService extends Service {
         mediaPlayer.start();
     }
 
-    public int playNext() {
-        songPosn++;
 
-        if (songPosn >= songs.size()) songPosn = 0;
-        playMethod();
-        return songPosn;
-    }
     public int playPrev() {
         songPosn--;
         if (songPosn < 0) {
@@ -212,10 +207,17 @@ public class MusicService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         stopForeground(true);
 
     }
-   
+
+    public int playNext() {
+        songPosn++;
+
+        if (songPosn >= songs.size()) songPosn = 0;
+        playMethod();
+        return songPosn;
+    }
+
 }
 

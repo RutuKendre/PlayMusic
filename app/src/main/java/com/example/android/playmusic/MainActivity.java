@@ -24,6 +24,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -55,7 +56,7 @@ import com.example.android.playmusic.SongAdapter;
 
 
 public class MainActivity extends AppCompatActivity implements MediaPlayerControl {
-
+private AudioManager mAudioManager;
     private MediaPlayer mMediaPlayer;
     public MusicController controller;
     private boolean paused = false, playbackPaused = false;
@@ -67,12 +68,37 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
     ListView listview;
     SongAdapter adapter;
 
+
+
+    private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
+                    focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+               pause();
+            }
+            else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+                // The AUDIOFOCUS_GAIN case means we have regained focus and can resume playback.
+                start();
+            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                // The AUDIOFOCUS_LOSS case means we've lost audio focus and
+                // Stop playback and clean up resources
+
+                releaseMediaPlayer();
+                Log.e("0","0");
+            }
+        }
+    };
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setController();
-
+mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
@@ -82,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         } else {
             doStuff();
         }
+
     }
 
     private ServiceConnection musicConnection = new ServiceConnection() {
@@ -122,8 +149,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayerContro
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                  releaseMediaPlayer();
+                Log.e("1","1");
+                  int result= mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
+                  if(result==AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                  {
 
-                songPicked(view);
+                      songPicked(view);
+
+                  }
+
                   replaceFragment(position);
 
             }
@@ -168,7 +203,7 @@ public void replaceFragment(int posn)
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
             //get columns
-            MediaMetadataRetriever metaRetriver = new MediaMetadataRetriever();
+
             int titleColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.TITLE);
             int idColumn = musicCursor.getColumnIndex
@@ -183,11 +218,7 @@ public void replaceFragment(int posn)
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
 
-
-
-
                 SongList.add(new Song(thisTitle, thisArtist,thisId));
-
 
             }
             while (musicCursor.moveToNext());
@@ -308,7 +339,6 @@ public void replaceFragment(int posn)
     public void pause() {
         playbackPaused = true;
         musicService.pausePlayer();
-
     }
 
     @Override
@@ -352,6 +382,18 @@ public void replaceFragment(int posn)
     protected void onStop() {
         controller.hide();
         super.onStop();
+        releaseMediaPlayer();
+        Log.e("2","2");
+    }
+    private void releaseMediaPlayer() {
+        // If the media player is not null, then it may be currently playing a sound.
+        if (mMediaPlayer != null) {
+
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+            mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
+        }
+
     }
 
 
