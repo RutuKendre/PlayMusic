@@ -5,6 +5,8 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.MediaController;
 
 public class MusicController extends MediaController {
@@ -27,10 +29,12 @@ public class MusicController extends MediaController {
         {
             Log.d(this.getClass().getName(),"DispACH");
             super.hide();
-            Context c = getContext();
+             Context c = getContext();
             ((Activity) c).finish();
-            return true;
+            return false;
         }
         return super.dispatchKeyEvent(event);
     }
+
+
 }

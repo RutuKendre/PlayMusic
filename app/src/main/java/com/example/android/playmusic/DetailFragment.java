@@ -34,6 +34,7 @@ public class DetailFragment extends Fragment {
         Bundle bundle = getArguments();
 
     if (bundle != null) {
+
         TextView textView = (TextView) getView().findViewById(R.id.songdetail);
         textView.setText(bundle.getString("songname"));
         TextView textView1 = (TextView) getView().findViewById(R.id.singerdetail);

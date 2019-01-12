@@ -9,10 +9,11 @@
     tools:context="DetailFragment"
     android:id="@+id/fragment_detail"
     android:padding="10dp"
-    android:background="#E0F2F1"
+    android:background="#C8E6C9"
     android:orientation="horizontal">
 
     <!-- TODO: Update blank fragment layout -->
+
     <ImageView
         android:layout_width="70dp"
         android:layout_height="70dp"
@@ -43,7 +44,9 @@
         android:id="@+id/singerdetail"
         android:textColor="#000000"
         tools:text="two"/>
+
     </LinearLayout>
+
 
 
 

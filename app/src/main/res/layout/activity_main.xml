@@ -7,8 +7,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity"
-
     android:id="@+id/rootView">
+
 
     <FrameLayout
 
@@ -16,20 +16,16 @@
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:visibility="gone"
-        class="com.example.android.playmusic.DetailFragment"
-       >
+        class="com.example.android.playmusic.DetailFragment">
 
     </FrameLayout>
-
     <ListView
         android:choiceMode="singleChoice"
         android:id="@+id/song_list"
         android:background="@drawable/download"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+
         >
     </ListView>
-
-
-
 </LinearLayout>

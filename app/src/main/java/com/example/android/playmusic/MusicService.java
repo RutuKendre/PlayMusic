@@ -32,7 +32,8 @@ import com.example.android.playmusic.MainActivity;
 
 public class MusicService extends Service {
 
-
+    private boolean shuffle=false;
+    private Random rand;
     //media player
     private MediaPlayer mediaPlayer;
     //song list
@@ -50,7 +51,6 @@ public class MusicService extends Service {
             mediaPlayer.start();
 
             Intent intent = new Intent(MusicService.this, MainActivity.class);
-
             intent.setAction(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
             PendingIntent pendingIntent = PendingIntent.getActivity(MusicService.this, 0, intent, 0);
@@ -74,7 +74,8 @@ public class MusicService extends Service {
         @Override
         public void onCompletion(MediaPlayer mp) {
             if (mediaPlayer.getCurrentPosition() > 0) {
-                mp.reset();
+
+               // mp.reset();
                 //playNext();
             }
         }
@@ -95,22 +96,15 @@ public class MusicService extends Service {
         return musicBind;
     }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
-        mediaPlayer.stop();
-        mediaPlayer.release();
-        return false;
-    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-
-
-//initialize position
+        rand=new Random();
+       //initialize position
         songPosn = 0;
-//create player
+         //create player
         mediaPlayer = new MediaPlayer();
 
         mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
@@ -133,7 +127,7 @@ public class MusicService extends Service {
             channel.setDescription(description);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
             notificationManager.createNotificationChannel(channel);
         }
     }
@@ -156,10 +150,10 @@ public class MusicService extends Service {
     public void playMethod() {
         mediaPlayer.reset();
         Song playSong = songs.get(songPosn);
-//get id
+        //get id
         songTitle = playSong.getSongName();
         long currSong = playSong.getSongId();
-//set uri
+           //set uri
         Uri trackUri = ContentUris.withAppendedId(
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 currSong);
@@ -212,11 +206,33 @@ public class MusicService extends Service {
     }
 
     public int playNext() {
-        songPosn++;
-
-        if (songPosn >= songs.size()) songPosn = 0;
+        //songPosn++;
+        if(shuffle){
+            int newSong = songPosn;
+            while(newSong==songPosn){
+                newSong=rand.nextInt(songs.size());
+            }
+            songPosn=newSong;
+        }
+       else{
+            songPosn++;
+            if(songPosn >= songs.size())
+            songPosn = 0;
+        }
         playMethod();
         return songPosn;
+    }
+
+    public void setShuffle(){
+        if(shuffle) shuffle=false;
+        else shuffle=true;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        return false;
     }
 
 }

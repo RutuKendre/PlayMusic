@@ -39,9 +39,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -58,7 +60,7 @@ import com.example.android.playmusic.SongAdapter;
 public class MainActivity extends AppCompatActivity implements MediaPlayerControl {
 private AudioManager mAudioManager;
     private MediaPlayer mMediaPlayer;
-    public MusicController controller;
+    private MusicController controller;
     private boolean paused = false, playbackPaused = false;
     private MusicService musicService;
     private Intent playIntent;
@@ -67,8 +69,7 @@ private AudioManager mAudioManager;
     private ArrayList<Song> SongList;
     ListView listview;
     SongAdapter adapter;
-
-
+    public int myposition;
 
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
@@ -83,22 +84,22 @@ private AudioManager mAudioManager;
             } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
                 // The AUDIOFOCUS_LOSS case means we've lost audio focus and
                 // Stop playback and clean up resources
-
                 releaseMediaPlayer();
                 Log.e("0","0");
             }
         }
     };
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setController();
-mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
+
+
+        mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
@@ -108,7 +109,6 @@ mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
         } else {
             doStuff();
         }
-
     }
 
     private ServiceConnection musicConnection = new ServiceConnection() {
@@ -151,29 +151,46 @@ mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                   releaseMediaPlayer();
                 Log.e("1","1");
-                  int result= mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
-                  if(result==AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                  {
 
-                      songPicked(view);
+               // setView();
+                replaceFragment(position);
+                controller.show(0);
+               // LinearLayout linearLayout=(LinearLayout)findViewById(R.id.bottom_view);
+                //linearLayout.setVisibility(View.VISIBLE);
 
-                  }
+                int result= mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
+                if(result==AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                {
+                    songPicked(view);
 
-                  replaceFragment(position);
+                }
 
             }
         });
-
     }
-public void replaceFragment(int posn)
+//public void setView()
+//{
+  //  Song mysong=SongList.get(myposition);
+    //String songname=mysong.getSongName();
+    //String singername=mysong.getSingerName();
+    //TextView textView= (TextView)findViewById(R.id.song_name_bottom);
+    //textView.setText(songname);
+    //TextView textView1=(TextView)findViewById(R.id.singer_name_bottom);
+    //textView1.setText(singername);
+//}
+
+
+
+    public void replaceFragment(int posn)
 {
     Song mysong = SongList.get(posn);
     String songname = mysong.getSongName();
     String singername = mysong.getSingerName();
-    DetailFragment detailFragment = new DetailFragment();
     Bundle bundle = new Bundle();
     bundle.putString("songname", songname);
     bundle.putString("singername", singername);
+
+    DetailFragment detailFragment = new DetailFragment();
     detailFragment.setArguments(bundle);
     FragmentManager manager = getSupportFragmentManager();
     FragmentTransaction transaction = manager.beginTransaction();
@@ -191,7 +208,6 @@ public void replaceFragment(int posn)
         stopService(playIntent);
         musicService=null;
         super.onDestroy();
-
 
     }
 
@@ -248,11 +264,10 @@ public void replaceFragment(int posn)
     public void songPicked(View view) {
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playMethod();
-        if (playbackPaused) {
+        //if (playbackPaused) {
             setController();
-            playbackPaused = false;
-        }
-        controller.show(0);
+           //playbackPaused = false;
+        //}
     }
 
     public void setController() {
@@ -276,13 +291,16 @@ public void replaceFragment(int posn)
     }
 
     private void playNext() {
+
         int position= musicService.playNext();
+
              replaceFragment(position);
         if (playbackPaused) {
             setController();
             playbackPaused = false;
         }
         controller.show(0);
+
         //return position;
     }
 
@@ -292,9 +310,10 @@ public void replaceFragment(int posn)
         replaceFragment(position);
         if (playbackPaused) {
             setController();
-            playbackPaused = false;
+           playbackPaused = false;
         }
         controller.show(0);
+
     }
 
     @Override
@@ -314,17 +333,17 @@ public void replaceFragment(int posn)
 
     @Override
     public int getCurrentPosition() {
-        if (musicService != null && musicBound && musicService.isPng()) {
-            return musicService.getPosn();
-        } else {
-            return 0;
+        if (musicService != null && musicBound&& musicService.isPng() ) {
+            return musicService.getPosn();}
+        else {
+           return 0;
         }
     }
 
     @Override
     public int getDuration() {
-        if (musicService != null && musicBound && musicService.isPng())
-            return musicService.getDur();
+        if (musicService != null && musicBound&& musicService.isPng() )
+         return musicService.getDur();
         else return 0;
     }
 
@@ -352,7 +371,6 @@ public void replaceFragment(int posn)
 
     }
 
-
     @Override
     public int getAudioSessionId() {
         return 0;
@@ -367,6 +385,7 @@ public void replaceFragment(int posn)
     protected void onPause() {
         super.onPause();
         paused = true;
+        //setView();
     }
 
     @Override
@@ -376,13 +395,15 @@ public void replaceFragment(int posn)
             setController();
             paused = false;
         }
+       //setView();
     }
 
     @Override
     protected void onStop() {
         controller.hide();
+        //setView();
         super.onStop();
-        releaseMediaPlayer();
+        ///releaseMediaPlayer();
         Log.e("2","2");
     }
     private void releaseMediaPlayer() {
@@ -396,5 +417,38 @@ public void replaceFragment(int posn)
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //menu item selected
+        switch (item.getItemId()) {
+            case R.id.action_shuffle:
+                //shuffle
+                musicService.setShuffle();
+                break;
+            case R.id.action_end:
+                stopService(playIntent);
+                musicService = null;
+                System.exit(0);
+                break;   }
+        return super.onOptionsItemSelected(item);
+    }
 
+        //return super.onOptionsItemSelected(item);
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    //boolean doubleBackToExitPressedOnce = false;
+   // @Override
+    //public void onBackPressed() {
+
+      //  super.onBackPressed();
+        //FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
+        //framelayout.setVisibility(View.GONE);
+
+    //}
 }
