@@ -29,7 +29,7 @@ public class MusicController extends MediaController {
         {
             Log.d(this.getClass().getName(),"DispACH");
             super.hide();
-             Context c = getContext();
+            Context c = getContext();
             ((Activity) c).finish();
             return false;
         }

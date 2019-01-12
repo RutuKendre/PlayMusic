@@ -39,10 +39,6 @@ public class DetailFragment extends Fragment {
         textView.setText(bundle.getString("songname"));
         TextView textView1 = (TextView) getView().findViewById(R.id.singerdetail);
         textView1.setText(bundle.getString("singername"));
-
-
 }
     }
-
-
 }

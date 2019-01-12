@@ -71,6 +71,7 @@ private AudioManager mAudioManager;
     SongAdapter adapter;
     public int myposition;
 
+
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
@@ -189,7 +190,6 @@ private AudioManager mAudioManager;
     Bundle bundle = new Bundle();
     bundle.putString("songname", songname);
     bundle.putString("singername", singername);
-
     DetailFragment detailFragment = new DetailFragment();
     detailFragment.setArguments(bundle);
     FragmentManager manager = getSupportFragmentManager();
@@ -202,6 +202,7 @@ private AudioManager mAudioManager;
     framelayout.setVisibility(View.VISIBLE);
 
 }
+
 
     @Override
     protected void onDestroy() {
@@ -441,7 +442,6 @@ private AudioManager mAudioManager;
         return super.onCreateOptionsMenu(menu);
     }
 
-
     //boolean doubleBackToExitPressedOnce = false;
    // @Override
     //public void onBackPressed() {
@@ -451,4 +451,5 @@ private AudioManager mAudioManager;
         //framelayout.setVisibility(View.GONE);
 
     //}
+
 }
