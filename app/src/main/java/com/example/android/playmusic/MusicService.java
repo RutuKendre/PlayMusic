@@ -56,7 +56,7 @@ public class MusicService extends Service {
             PendingIntent pendingIntent = PendingIntent.getActivity(MusicService.this, 0, intent, 0);
 
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(MusicService.this, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.image)
+                    .setSmallIcon(R.drawable.noti)
                     .setContentTitle(" Now Playing")
                     .setContentText(songTitle)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -74,9 +74,8 @@ public class MusicService extends Service {
         @Override
         public void onCompletion(MediaPlayer mp) {
             if (mediaPlayer.getCurrentPosition() > 0) {
+                mp.reset();
 
-               // mp.reset();
-                //playNext();
             }
         }
     };
@@ -90,13 +89,10 @@ public class MusicService extends Service {
         }
     };
 
-
     @Override
     public IBinder onBind(Intent intent) {
         return musicBind;
     }
-
-
 
     @Override
     public void onCreate() {
@@ -243,6 +239,7 @@ public class MusicService extends Service {
         mediaPlayer.release();
         return false;
     }
+
 
 }
 

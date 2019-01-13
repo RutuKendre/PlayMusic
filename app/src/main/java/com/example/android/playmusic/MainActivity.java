@@ -66,10 +66,10 @@ private AudioManager mAudioManager;
     private Intent playIntent;
     private boolean musicBound = false;
     private static final int MY_PERMISSION_REQUEST = 1;
+
     private ArrayList<Song> SongList;
     ListView listview;
     SongAdapter adapter;
-    public int myposition;
 
 
     private AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
@@ -97,10 +97,7 @@ private AudioManager mAudioManager;
         setContentView(R.layout.activity_main);
         setController();
 
-
-
         mAudioManager=(AudioManager)getSystemService(Context.AUDIO_SERVICE);
-
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST);
@@ -110,6 +107,8 @@ private AudioManager mAudioManager;
         } else {
             doStuff();
         }
+
+
     }
 
     private ServiceConnection musicConnection = new ServiceConnection() {
@@ -140,47 +139,26 @@ private AudioManager mAudioManager;
         }
     }
 
-    public void doStuff() {
-        listview = (ListView) findViewById(R.id.song_list);
-        SongList = new ArrayList<Song>();
-        getSongs();
-        adapter = new SongAdapter(this, SongList);
-        listview.setAdapter(adapter);
+public void doStuff() {
+    listview = (ListView) findViewById(R.id.song_list);
+    SongList = new ArrayList<Song>();
+    getSongs();
+    adapter = new SongAdapter(this, SongList);
+    listview.setAdapter(adapter);
 
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                  releaseMediaPlayer();
-                Log.e("1","1");
-
-               // setView();
-                replaceFragment(position);
-                controller.show(0);
-               // LinearLayout linearLayout=(LinearLayout)findViewById(R.id.bottom_view);
-                //linearLayout.setVisibility(View.VISIBLE);
-
-                int result= mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
-                if(result==AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                {
-                    songPicked(view);
-
-                }
-
+    listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            releaseMediaPlayer();
+            replaceFragment(position);
+            int result= mAudioManager.requestAudioFocus(mOnAudioFocusChangeListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
+            if(result==AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+            {
+                songPicked(view);
             }
-        });
-    }
-//public void setView()
-//{
-  //  Song mysong=SongList.get(myposition);
-    //String songname=mysong.getSongName();
-    //String singername=mysong.getSingerName();
-    //TextView textView= (TextView)findViewById(R.id.song_name_bottom);
-    //textView.setText(songname);
-    //TextView textView1=(TextView)findViewById(R.id.singer_name_bottom);
-    //textView1.setText(singername);
-//}
-
-
+        }
+    });
+}
 
     public void replaceFragment(int posn)
 {
@@ -202,8 +180,6 @@ private AudioManager mAudioManager;
     framelayout.setVisibility(View.VISIBLE);
 
 }
-
-
     @Override
     protected void onDestroy() {
         stopService(playIntent);
@@ -216,7 +192,6 @@ private AudioManager mAudioManager;
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
-
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
             //get columns
@@ -263,12 +238,14 @@ private AudioManager mAudioManager;
 
 
     public void songPicked(View view) {
+
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playMethod();
-        //if (playbackPaused) {
-            setController();
-           //playbackPaused = false;
-        //}
+        if (playbackPaused) {
+        setController();
+           playbackPaused = false;
+        }
+        controller.show(0);
     }
 
     public void setController() {
@@ -302,7 +279,6 @@ private AudioManager mAudioManager;
         }
         controller.show(0);
 
-        //return position;
     }
 
     //play previous
@@ -386,31 +362,30 @@ private AudioManager mAudioManager;
     protected void onPause() {
         super.onPause();
         paused = true;
-        //setView();
+
     }
 
     @Override
     protected void onResume() {
+        Log.e("Hello","Hello");
         super.onResume();
         if (paused) {
             setController();
             paused = false;
         }
-       //setView();
+
     }
 
     @Override
     protected void onStop() {
         controller.hide();
-        //setView();
         super.onStop();
-        ///releaseMediaPlayer();
+        //releaseMediaPlayer();
         Log.e("2","2");
     }
     private void releaseMediaPlayer() {
         // If the media player is not null, then it may be currently playing a sound.
         if (mMediaPlayer != null) {
-
             mMediaPlayer.release();
             mMediaPlayer = null;
             mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener);
@@ -434,22 +409,11 @@ private AudioManager mAudioManager;
         return super.onOptionsItemSelected(item);
     }
 
-        //return super.onOptionsItemSelected(item);
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
-    //boolean doubleBackToExitPressedOnce = false;
-   // @Override
-    //public void onBackPressed() {
-
-      //  super.onBackPressed();
-        //FrameLayout framelayout = (FrameLayout) findViewById(R.id.detailfragment);
-        //framelayout.setVisibility(View.GONE);
-
-    //}
 
 }
